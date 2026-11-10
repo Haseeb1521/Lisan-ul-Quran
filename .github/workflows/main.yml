@@ -11,9 +11,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: Make Gradlew Executable
+        run: chmod +x ./android/gradlew
       - name: Build APK with Gradle
-        working-directory: ./android
-        run: chmod +x gradlew && ./gradlew assembleDebug
+        run: ./android/gradlew assembleDebug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
