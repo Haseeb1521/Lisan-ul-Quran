@@ -27,12 +27,12 @@ object AppSettings {
         reciterIndex = p.getInt("reciter", 0)
     }
 
-    fun setUiEnglish(v: Boolean) {
+    fun changeUiEnglish(v: Boolean) {
         uiEnglish = v
         prefs?.edit()?.putBoolean("ui_english", v)?.apply()
     }
 
-    fun setMeaningLang(v: String) {
+    fun changeMeaningLang(v: String) {
         meaningLang = v
         prefs?.edit()?.putString("meaning_lang", v)?.apply()
     }

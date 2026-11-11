@@ -111,8 +111,8 @@ fun NumberBadge(text: String, modifier: Modifier = Modifier) {
 fun LanguageChips() {
     val lang = AppSettings.meaningLang
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        FilterChip(selected = lang == "ur", onClick = { AppSettings.setMeaningLang("ur") }, label = { Text("اردو") })
-        FilterChip(selected = lang == "en", onClick = { AppSettings.setMeaningLang("en") }, label = { Text("English") })
+        FilterChip(selected = lang == "ur", onClick = { AppSettings.changeMeaningLang("ur") }, label = { Text("اردو") })
+        FilterChip(selected = lang == "en", onClick = { AppSettings.changeMeaningLang("en") }, label = { Text("English") })
     }
 }
 
@@ -120,8 +120,8 @@ fun LanguageChips() {
 fun UiLanguageChips() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(tr("App ki zuban:", "App language:"), color = Muted, fontSize = 13.sp)
-        FilterChip(selected = !AppSettings.uiEnglish, onClick = { AppSettings.setUiEnglish(false) }, label = { Text("Hinglish") })
-        FilterChip(selected = AppSettings.uiEnglish, onClick = { AppSettings.setUiEnglish(true) }, label = { Text("English") })
+        FilterChip(selected = !AppSettings.uiEnglish, onClick = { AppSettings.changeUiEnglish(false) }, label = { Text("Hinglish") })
+        FilterChip(selected = AppSettings.uiEnglish, onClick = { AppSettings.changeUiEnglish(true) }, label = { Text("English") })
     }
 }
 

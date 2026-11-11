@@ -230,7 +230,7 @@ fun PlayerSheet(onDismiss: () -> Unit) {
                 OutlinedButton(onClick = {
                     val speeds = listOf(0.75f, 1f, 1.25f, 1.5f)
                     val idx = speeds.indexOfFirst { it == p.speed }
-                    p.setSpeed(speeds[(idx + 1) % speeds.size])
+                    p.changeSpeed(speeds[(idx + 1) % speeds.size])
                 }) { Text("${p.speed}x") }
             }
             if (p.isBuffering) {

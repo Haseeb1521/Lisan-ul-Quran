@@ -170,7 +170,7 @@ object QuranAudioPlayerManager {
         positionMs = ms
     }
 
-    fun setSpeed(value: Float) { controller?.setPlaybackSpeed(value) }
+    fun changeSpeed(value: Float) { controller?.setPlaybackSpeed(value) }
 
     fun cycleRepeat() {
         val c = controller ?: return
