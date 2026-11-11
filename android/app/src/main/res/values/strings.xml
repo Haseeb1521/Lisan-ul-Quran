@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lisan-ul-Quran</string>
+    <string name="channel_name">Daily Ayah</string>
+    <string name="channel_description">Daily Quran ayah reminder</string>
+</resources>
