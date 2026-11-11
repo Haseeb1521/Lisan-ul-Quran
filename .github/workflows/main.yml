@@ -16,6 +16,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Fetch Quran data
+        run: python3 tools/fetch_quran.py android/app/src/main/assets
+
       - name: Build APK with Gradle
         run: |
           chmod +x gradlew
