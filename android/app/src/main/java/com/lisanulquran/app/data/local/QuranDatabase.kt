@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.*
 
 @Database(
-    entities = [WordEntity::class, GrammarEntity::class, AyahEntity::class],
-    version = 1,
+    entities = [ChapterEntity::class, AyahEntity::class, WordEntity::class, TafsirEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class QuranDatabase : RoomDatabase() {

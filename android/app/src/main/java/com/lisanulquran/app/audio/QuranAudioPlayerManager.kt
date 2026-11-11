@@ -23,4 +23,9 @@ class QuranAudioPlayerManager(private val context: Context) {
             player.play()
         }
     }
+
+    fun release() {
+        exoPlayer?.release()
+        exoPlayer = null
+    }
 }

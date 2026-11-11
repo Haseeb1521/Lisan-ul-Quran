@@ -2,10 +2,12 @@ package com.lisanulquran.app.ui.navigation
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
+    object Surah : Screen("surah/{id}") {
+        fun create(id: Int) = "surah/$id"
+    }
     object Vocabulary : Screen("vocabulary")
     object Grammar : Screen("grammar")
     object DailyAyah : Screen("daily_ayah")
-    object Tafsir : Screen("tafsir")
     object Quiz : Screen("quiz")
     object Revision : Screen("revision")
 }

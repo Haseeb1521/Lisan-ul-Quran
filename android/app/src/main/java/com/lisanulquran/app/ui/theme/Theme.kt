@@ -1,28 +1,50 @@
 package com.lisanulquran.app.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
-val DeepBlack = Color(0xFF0A0A0A)
-val EmeraldDark = Color(0xFF064E3B)
-val Emerald = Color(0xFF10B981)
-val Gold = Color(0xFFD4AF37)
-val SoftWhite = Color(0xFFF3F4F6)
-val CardDark = Color(0xFF111827)
+val DeepBlack = Color(0xFF08100D)
+val Surface1 = Color(0xFF0F1B16)
+val CardDark = Color(0xFF14241D)
+val CardLight = Color(0xFF1B3128)
+val EmeraldDark = Color(0xFF0B3B2E)
+val Emerald = Color(0xFF34D399)
+val Gold = Color(0xFFE6BE5A)
+val SoftWhite = Color(0xFFEAF3EE)
+val Muted = Color(0xFF9DB5A9)
+val ErrorRed = Color(0xFFF87171)
 
 private val AppColors = darkColorScheme(
     primary = Emerald,
-    secondary = Gold,
-    background = DeepBlack,
-    surface = CardDark,
     onPrimary = DeepBlack,
+    secondary = Gold,
+    onSecondary = DeepBlack,
+    background = DeepBlack,
     onBackground = SoftWhite,
-    onSurface = SoftWhite
+    surface = CardDark,
+    onSurface = SoftWhite,
+    surfaceVariant = CardLight,
+    onSurfaceVariant = Muted,
+    outline = Color(0xFF2F4A3F),
+    error = ErrorRed
+)
+
+private val AppTypography = Typography(
+    headlineMedium = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Gold),
+    titleLarge = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold),
+    titleMedium = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 21.sp),
+    labelMedium = TextStyle(fontSize = 12.sp)
 )
 
 @Composable
 fun LisanUlQuranTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = AppColors, content = content)
+    MaterialTheme(colorScheme = AppColors, typography = AppTypography, content = content)
 }

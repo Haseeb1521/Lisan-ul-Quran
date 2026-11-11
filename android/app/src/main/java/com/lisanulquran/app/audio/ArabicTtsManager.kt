@@ -29,4 +29,10 @@ class ArabicTtsManager(private val context: Context) : TextToSpeech.OnInitListen
     fun stop() {
         tts?.stop()
     }
+
+    fun release() {
+        tts?.stop()
+        tts?.shutdown()
+        tts = null
+    }
 }
