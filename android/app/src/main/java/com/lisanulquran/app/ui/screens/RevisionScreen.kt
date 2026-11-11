@@ -1,5 +1,7 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.data.AppSettings
+import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +44,7 @@ fun RevisionScreen(navController: NavController) {
     val dao = remember { QuranDatabase.getDatabase(context).quranDao() }
     val learned = LearnedStore.words
     var rows by remember { mutableStateOf<List<VocabRow>>(emptyList()) }
-    var lang by rememberSaveable { mutableStateOf("ur") }
+    val lang = AppSettings.meaningLang
 
     LaunchedEffect(learned) {
         rows = if (learned.isEmpty()) emptyList() else dao.vocabByArabic(learned.toList())
@@ -57,14 +59,14 @@ fun RevisionScreen(navController: NavController) {
     ) {
         item {
             Column {
-                ScreenTitle("Revision", "Jin alfaz par ⭐ lagaya wo yahan hain. Matlab dekhne ke liye card dabayein")
-                LanguageChips(lang) { lang = it }
+                ScreenTitle("Revision", tr("Jin alfaz par ⭐ lagaya wo yahan hain. Matlab dekhne ke liye card dabayein", "Words you starred ⭐ appear here. Tap a card to reveal its meaning"))
+                LanguageChips()
             }
         }
         if (learned.isEmpty()) {
             item {
                 Text(
-                    "Abhi koi lafz save nahi hai. Vocabulary mein jaakar ⭐ dabayein.",
+                    tr("Abhi koi lafz save nahi hai. Vocabulary mein jaakar ⭐ dabayein.", "No words saved yet. Open Vocabulary and tap ⭐ on a word."),
                     color = Muted
                 )
             }
@@ -82,7 +84,7 @@ fun RevisionScreen(navController: NavController) {
                                 fontSize = if (lang == "ur") 18.sp else 16.sp
                             )
                         } else {
-                            Text("Matlab dekhne ke liye dabayein", color = Muted, fontSize = 12.sp)
+                            Text(tr("Matlab dekhne ke liye dabayein", "Tap to reveal the meaning"), color = Muted, fontSize = 12.sp)
                         }
                     }
                     StarButton(true) { LearnedStore.toggle(row.arabic) }

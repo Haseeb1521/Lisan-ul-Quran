@@ -150,20 +150,21 @@ def main():
     with open(os.path.join(OUT, "quran.json"), "w", encoding="utf-8") as f:
         json.dump({"chapters": chapters, "ayahs": ayahs}, f, ensure_ascii=False, separators=(",", ":"))
 
-    try:
-        fetch_tafsir(chapters)
-    except SystemExit as e:
-        print("TAFSIR SKIPPED:", e, file=sys.stderr)
-        write_tafsir("", [])
-    except Exception as e:  # noqa: BLE001
-        print("TAFSIR SKIPPED:", e, file=sys.stderr)
-        write_tafsir("", [])
+    for language, fname, prefs in (
+        ("urdu", "tafsir.json", ["bayan"]),
+        ("english", "tafsir_en.json", ["ibn kathir (abridged)", "kathir", "ma'arif"]),
+    ):
+        try:
+            fetch_tafsir(chapters, language, fname, prefs)
+        except (SystemExit, Exception) as e:  # noqa: BLE001
+            print("TAFSIR SKIPPED", language, e, file=sys.stderr)
+            write_tafsir(fname, "", [])
 
 
-def write_tafsir(source, items):
-    with open(os.path.join(OUT, "tafsir.json"), "w", encoding="utf-8") as f:
+def write_tafsir(fname, source, items):
+    with open(os.path.join(OUT, fname), "w", encoding="utf-8") as f:
         json.dump({"source": source, "items": items}, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"tafsir items: {len(items)} source: {source}")
+    print(f"{fname}: tafsir items: {len(items)} source: {source}")
 
 
 def tafsir_text(html):
@@ -173,26 +174,22 @@ def tafsir_text(html):
     return "\n".join(ln for ln in lines if ln)
 
 
-def fetch_tafsir(chapters):
+def fetch_tafsir(chapters, language, fname, prefs):
     lst = get("/resources/tafsirs")["tafsirs"]
-    for t in lst:
-        print("tafsir option:", t.get("id"), t.get("name"), "|", t.get("author_name"), "|", t.get("language_name"))
-    urdu = [t for t in lst if t.get("language_name", "").lower() == "urdu"]
+    pool = [t for t in lst if t.get("language_name", "").lower() == language]
     chosen = None
-    for t in urdu:
-        if "bayan" in (t.get("name", "") + t.get("author_name", "")).lower():
-            chosen = t
-            break
-    if not chosen and urdu:
-        chosen = urdu[0]
-    if not chosen:
-        for t in lst:
-            if t.get("language_name", "").lower() == "english" and "kathir" in t.get("name", "").lower():
+    for key in prefs:
+        for t in pool:
+            if key in (t.get("name", "") + " " + t.get("author_name", "")).lower():
                 chosen = t
                 break
+        if chosen:
+            break
+    if not chosen and pool:
+        chosen = pool[0]
     if not chosen:
-        raise SystemExit("no suitable tafsir found")
-    print("chosen tafsir:", chosen["id"], chosen.get("name"))
+        raise SystemExit("no suitable tafsir found for " + language)
+    print("chosen tafsir:", language, chosen["id"], chosen.get("name"))
     items = []
     for ch in chapters:
         page = 1
@@ -202,16 +199,15 @@ def fetch_tafsir(chapters):
                 key = t.get("verse_key", "")
                 if ":" not in key:
                     continue
-                s, a = key.split(":")
+                s_, a_ = key.split(":")
                 text = tafsir_text(t.get("text", ""))
                 if text:
-                    items.append({"s": int(s), "a": int(a), "t": text})
+                    items.append({"s": int(s_), "a": int(a_), "t": text})
             nxt = d.get("pagination", {}).get("next_page")
             if not nxt:
                 break
             page = nxt
-        print(f"tafsir surah {ch['id']} done ({len(items)} items)")
-    write_tafsir(chosen.get("name", ""), items)
+    write_tafsir(fname, chosen.get("name", ""), items)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.data.AppSettings
+import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,7 +60,7 @@ fun VocabularyScreen(navController: NavController) {
 
     var input by rememberSaveable { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
-    var lang by rememberSaveable { mutableStateOf("ur") }
+    val lang = AppSettings.meaningLang
     LaunchedEffect(input) {
         delay(300)
         query = input.trim()
@@ -75,14 +77,14 @@ fun VocabularyScreen(navController: NavController) {
     ) {
         item {
             Column {
-                ScreenTitle("Vocabulary", "Quran ke tamam alfaz, kitni baar aaye us hisab se")
+                ScreenTitle("Vocabulary", tr("Quran ke tamam alfaz, kitni baar aaye us hisab se", "Every word of the Quran, ordered by how often it appears"))
                 OutlinedTextField(
                     value = input,
                     onValueChange = { input = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    placeholder = { Text("Arabic, matlab ya transliteration") }
+                    placeholder = { Text(tr("Arabic, matlab ya transliteration", "Arabic, meaning or transliteration")) }
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -90,8 +92,8 @@ fun VocabularyScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    LanguageChips(lang) { lang = it }
-                    Text("${rows.size} alfaz", color = Muted, fontSize = 13.sp)
+                    LanguageChips()
+                    Text("${rows.size} ${tr("alfaz", "words")}", color = Muted, fontSize = 13.sp)
                 }
             }
         }
@@ -108,7 +110,7 @@ fun VocabularyScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyLarge,
                             fontSize = if (lang == "ur") 18.sp else 16.sp
                         )
-                        Text("Quran mein ${row.freq} baar", color = Muted, fontSize = 12.sp)
+                        Text(tr("Quran mein ${row.freq} baar", "Appears ${row.freq} times in the Quran"), color = Muted, fontSize = 12.sp)
                     }
                     IconButton(onClick = { tts.speak(row.arabic) }) {
                         Icon(Icons.Default.PlayArrow, contentDescription = "Listen", tint = Emerald)

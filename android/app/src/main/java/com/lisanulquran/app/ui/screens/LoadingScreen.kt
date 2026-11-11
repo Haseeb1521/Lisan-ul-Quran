@@ -1,5 +1,6 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,7 +39,7 @@ fun LoadingScreen(progress: Float, error: String?) {
         Spacer(Modifier.height(32.dp))
         if (error != null) {
             Text(
-                "Data load nahi ho paya:\n$error",
+                tr("Data load nahi ho paya:\n$error", "Could not load data:\n$error"),
                 color = ErrorRed,
                 textAlign = TextAlign.Center
             )
@@ -50,7 +51,7 @@ fun LoadingScreen(progress: Float, error: String?) {
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Pehli baar Quran ka data tayyar ho raha hai (${(progress * 100).toInt()}%). Sirf ek baar hoga.",
+                tr("Pehli baar Quran ka data tayyar ho raha hai (${(progress * 100).toInt()}%). Sirf ek baar hoga.", "Preparing the Quran data for the first time (${(progress * 100).toInt()}%). This happens only once."),
                 color = Muted,
                 textAlign = TextAlign.Center,
                 fontSize = 13.sp

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -47,6 +49,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lisanulquran.app.data.AppSettings
+import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.data.local.AyahEntity
 import com.lisanulquran.app.data.local.WordEntity
 import com.lisanulquran.app.data.local.meaningOf
@@ -61,12 +65,13 @@ import com.lisanulquran.app.ui.theme.Muted
 fun AppCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    highlight: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val base = modifier.fillMaxWidth()
     val colors = CardDefaults.cardColors(containerColor = CardDark)
     val shape = RoundedCornerShape(18.dp)
-    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    val border = BorderStroke(if (highlight) 2.dp else 1.dp, if (highlight) Gold else MaterialTheme.colorScheme.outline)
     if (onClick != null) {
         Card(onClick = onClick, modifier = base, colors = colors, shape = shape, border = border) {
             Column(Modifier.padding(16.dp), content = content)
@@ -93,20 +98,30 @@ fun ScreenTitle(title: String, subtitle: String? = null) {
 fun NumberBadge(text: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .size(38.dp)
-            .clip(CircleShape)
+            .defaultMinSize(minWidth = 38.dp, minHeight = 38.dp)
+            .clip(RoundedCornerShape(19.dp))
             .background(CardLight),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Emerald, fontSize = 13.sp)
+        Text(text, color = Emerald, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
     }
 }
 
 @Composable
-fun LanguageChips(lang: String, onChange: (String) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = lang == "ur", onClick = { onChange("ur") }, label = { Text("اردو") })
-        FilterChip(selected = lang == "en", onClick = { onChange("en") }, label = { Text("English") })
+fun LanguageChips() {
+    val lang = AppSettings.meaningLang
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        FilterChip(selected = lang == "ur", onClick = { AppSettings.setMeaningLang("ur") }, label = { Text("اردو") })
+        FilterChip(selected = lang == "en", onClick = { AppSettings.setMeaningLang("en") }, label = { Text("English") })
+    }
+}
+
+@Composable
+fun UiLanguageChips() {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(tr("App ki zuban:", "App language:"), color = Muted, fontSize = 13.sp)
+        FilterChip(selected = !AppSettings.uiEnglish, onClick = { AppSettings.setUiEnglish(false) }, label = { Text("Hinglish") })
+        FilterChip(selected = AppSettings.uiEnglish, onClick = { AppSettings.setUiEnglish(true) }, label = { Text("English") })
     }
 }
 
@@ -163,16 +178,18 @@ fun AyahCard(
     lang: String,
     showWords: Boolean,
     headerLabel: String = ayah.ayah.toString(),
+    isCurrent: Boolean = false,
+    isPlaying: Boolean = false,
     onPlay: () -> Unit,
     onWordClick: (WordEntity) -> Unit
 ) {
     var tafsirOpen by rememberSaveable(ayah.surah, ayah.ayah) { mutableStateOf(false) }
-    AppCard {
+    AppCard(highlight = isCurrent) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberBadge(headerLabel)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onPlay) {
-                Icon(Icons.Default.PlayArrow, contentDescription = "Play", tint = Emerald)
+                Icon(if (isCurrent && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = "Play", tint = Emerald)
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -209,6 +226,11 @@ fun AyahCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Tafsir", color = Emerald, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (lang == "ur") "  Bayan-ul-Quran" else "  Ibn Kathir (Abridged)",
+                    color = Muted,
+                    fontSize = 12.sp
+                )
                 Icon(
                     if (tafsirOpen) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,

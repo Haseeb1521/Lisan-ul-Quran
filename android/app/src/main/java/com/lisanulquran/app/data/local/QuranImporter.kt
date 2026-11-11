@@ -26,10 +26,12 @@ object QuranImporter {
                 readQuran(reader, db, dao, onProgress)
             }
         }
-        runCatching {
-            context.assets.open("tafsir.json").use { stream ->
-                JsonReader(InputStreamReader(stream, Charsets.UTF_8).buffered()).use { reader ->
-                    readTafsir(reader, db, dao)
+        listOf("tafsir.json" to "ur", "tafsir_en.json" to "en").forEach { (file, lang) ->
+            runCatching {
+                context.assets.open(file).use { stream ->
+                    JsonReader(InputStreamReader(stream, Charsets.UTF_8).buffered()).use { reader ->
+                        readTafsir(reader, db, dao, lang)
+                    }
                 }
             }
         }
@@ -126,7 +128,7 @@ object QuranImporter {
         r.endObject()
     }
 
-    private suspend fun readTafsir(r: JsonReader, db: QuranDatabase, dao: QuranDao) {
+    private suspend fun readTafsir(r: JsonReader, db: QuranDatabase, dao: QuranDao, lang: String) {
         r.beginObject()
         while (r.hasNext()) {
             when (r.nextName()) {
@@ -145,7 +147,7 @@ object QuranImporter {
                             }
                         }
                         r.endObject()
-                        batch.add(TafsirEntity(s, a, t))
+                        batch.add(TafsirEntity(s, a, lang, t))
                         if (batch.size >= 200) {
                             val b = ArrayList(batch)
                             db.withTransaction { dao.insertTafsir(b) }

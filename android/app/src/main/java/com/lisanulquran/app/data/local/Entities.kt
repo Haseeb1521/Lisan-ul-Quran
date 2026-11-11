@@ -36,10 +36,11 @@ data class WordEntity(
     val ur: String
 )
 
-@Entity(tableName = "tafsir", primaryKeys = ["surah", "ayah"])
+@Entity(tableName = "tafsir", primaryKeys = ["surah", "ayah", "lang"])
 data class TafsirEntity(
     val surah: Int,
     val ayah: Int,
+    val lang: String,
     val text: String
 )
 
@@ -71,8 +72,11 @@ interface QuranDao {
     @Query("SELECT * FROM words WHERE surah = :surah ORDER BY ayah, position")
     fun words(surah: Int): Flow<List<WordEntity>>
 
-    @Query("SELECT * FROM tafsir WHERE surah = :surah")
-    fun tafsir(surah: Int): Flow<List<TafsirEntity>>
+    @Query("SELECT * FROM tafsir WHERE surah = :surah AND lang = :lang")
+    fun tafsir(surah: Int, lang: String): Flow<List<TafsirEntity>>
+
+    @Query("SELECT * FROM ayahs WHERE surah = :surah AND ayah = :ayah")
+    suspend fun ayah(surah: Int, ayah: Int): AyahEntity?
 
     @Query("SELECT * FROM ayahs ORDER BY surah, ayah LIMIT 1 OFFSET :offset")
     suspend fun ayahAt(offset: Int): AyahEntity?
@@ -80,8 +84,8 @@ interface QuranDao {
     @Query("SELECT * FROM words WHERE surah = :surah AND ayah = :ayah ORDER BY position")
     suspend fun wordsOf(surah: Int, ayah: Int): List<WordEntity>
 
-    @Query("SELECT * FROM tafsir WHERE surah = :surah AND ayah <= :ayah ORDER BY ayah DESC LIMIT 1")
-    suspend fun tafsirFor(surah: Int, ayah: Int): TafsirEntity?
+    @Query("SELECT * FROM tafsir WHERE surah = :surah AND ayah <= :ayah AND lang = :lang ORDER BY ayah DESC LIMIT 1")
+    suspend fun tafsirFor(surah: Int, ayah: Int, lang: String): TafsirEntity?
 
     @Query(
         """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, COUNT(*) AS freq

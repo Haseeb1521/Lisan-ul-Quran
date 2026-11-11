@@ -1,5 +1,7 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.data.AppSettings
+import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -49,7 +51,7 @@ fun QuizScreen(navController: NavController) {
     val context = LocalContext.current
     val dao = remember { QuranDatabase.getDatabase(context).quranDao() }
 
-    var lang by rememberSaveable { mutableStateOf("ur") }
+    val lang = AppSettings.meaningLang
     var round by remember { mutableIntStateOf(0) }
     var questions by remember { mutableStateOf<List<QuizQuestion>>(emptyList()) }
     var index by remember { mutableIntStateOf(0) }
@@ -82,12 +84,12 @@ fun QuizScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        ScreenTitle("Quiz", "Is lafz ka sahi matlab chuniye")
-        LanguageChips(lang) { lang = it }
+        ScreenTitle("Quiz", tr("Is lafz ka sahi matlab chuniye", "Choose the correct meaning of this word"))
+        LanguageChips()
         Spacer(Modifier.height(16.dp))
 
         if (questions.isEmpty()) {
-            Text("Sawal tayyar ho rahe hain...", color = Muted)
+            Text(tr("Sawal tayyar ho rahe hain...", "Preparing questions..."), color = Muted)
         } else if (index >= questions.size) {
             AppCard {
                 Text(
@@ -98,10 +100,10 @@ fun QuizScreen(navController: NavController) {
                 )
             }
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { round++ }, modifier = Modifier.fillMaxWidth()) { Text("Naya round") }
+            Button(onClick = { round++ }, modifier = Modifier.fillMaxWidth()) { Text(tr("Naya round", "New round")) }
         } else {
             val q = questions[index]
-            Text("Sawal ${index + 1} / ${questions.size}", color = Muted, fontSize = 13.sp)
+            Text("${tr("Sawal", "Question")} ${index + 1} / ${questions.size}", color = Muted, fontSize = 13.sp)
             Spacer(Modifier.height(8.dp))
             AppCard {
                 Text(
@@ -154,7 +156,7 @@ fun QuizScreen(navController: NavController) {
                 Button(
                     onClick = { index++; selected = null },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(if (index + 1 < questions.size) "Agla sawal" else "Nateeja dekhein") }
+                ) { Text(if (index + 1 < questions.size) tr("Agla sawal", "Next question") else tr("Nateeja dekhein", "See result")) }
             }
         }
     }

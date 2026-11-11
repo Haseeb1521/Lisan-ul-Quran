@@ -2,7 +2,12 @@ package com.lisanulquran.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -33,8 +38,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.lisanulquran.app.audio.QuranAudioPlayerManager
 import com.lisanulquran.app.data.local.QuranDatabase
 import com.lisanulquran.app.data.local.QuranImporter
+import com.lisanulquran.app.ui.components.MiniPlayer
+import com.lisanulquran.app.ui.components.PlayerSheet
 import com.lisanulquran.app.ui.navigation.Screen
 import com.lisanulquran.app.ui.screens.DailyAyahScreen
 import com.lisanulquran.app.ui.screens.GrammarScreen
@@ -50,6 +58,7 @@ import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.Gold
 import com.lisanulquran.app.ui.theme.LisanUlQuranTheme
 import com.lisanulquran.app.ui.theme.Muted
+import kotlinx.coroutines.delay
 
 private class Tab(val route: String, val label: String, val icon: ImageVector)
 
@@ -88,6 +97,14 @@ private fun AppRoot() {
         }
     }
 
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(ready) {
+        if (ready) {
+            QuranAudioPlayerManager.connect(context)
+            if (Build.VERSION.SDK_INT >= 33) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     if (ready) MainScaffold() else LoadingScreen(progress, error)
 }
 
@@ -96,11 +113,22 @@ private fun MainScaffold() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    var showPlayer by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            QuranAudioPlayerManager.refreshPosition()
+            delay(300)
+        }
+    }
+    if (showPlayer && QuranAudioPlayerManager.hasMedia) PlayerSheet { showPlayer = false }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = DeepBlack,
         bottomBar = {
+            Column {
+            MiniPlayer { showPlayer = true }
             NavigationBar(containerColor = EmeraldDark) {
                 tabs.forEach { tab ->
                     NavigationBarItem(
@@ -123,6 +151,7 @@ private fun MainScaffold() {
                         )
                     )
                 }
+            }
             }
         }
     ) { innerPadding ->

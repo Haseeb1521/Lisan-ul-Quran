@@ -1,5 +1,7 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.ui.components.UiLanguageChips
+import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,15 +68,16 @@ fun HomeScreen(navController: NavController) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            ScreenTitle("لسان القرآن", "Quran ki zuban samajhne ka safar")
+            ScreenTitle("لسان القرآن", tr("Quran ki zuban samajhne ka safar", "A journey to understand the language of the Quran"))
         }
+        item { UiLanguageChips() }
         item {
             AppCard(onClick = { navController.navigate(Screen.Grammar.route) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.School, contentDescription = null, tint = Emerald)
                     Column(Modifier.padding(start = 12.dp)) {
                         Text("Arabic Grammar", style = MaterialTheme.typography.titleMedium, color = Gold)
-                        Text("Ism, Fi'l, Harf aur buniyadi qawaid", color = Muted, fontSize = 13.sp)
+                        Text(tr("Ism, Fi'l, Harf aur buniyadi qawaid", "Ism, Fi'l, Harf and the basics"), color = Muted, fontSize = 13.sp)
                     }
                 }
             }
@@ -86,7 +89,7 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                placeholder = { Text("Surah dhoondhein (naam ya number)") }
+                placeholder = { Text(tr("Surah dhoondhein (naam ya number)", "Search surah (name or number)")) }
             )
         }
         items(filtered, key = { it.id }) { ch ->
@@ -95,7 +98,7 @@ fun HomeScreen(navController: NavController) {
                     NumberBadge(ch.id.toString())
                     Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                         Text(ch.nameSimple, style = MaterialTheme.typography.titleMedium)
-                        Text("${ch.nameTranslated} • ${ch.versesCount} ayat", color = Muted, fontSize = 12.sp)
+                        Text("${ch.nameTranslated} • ${ch.versesCount} ${tr("ayat", "verses")}", color = Muted, fontSize = 12.sp)
                     }
                     Text(ch.nameArabic, fontSize = 24.sp, color = Gold)
                 }
