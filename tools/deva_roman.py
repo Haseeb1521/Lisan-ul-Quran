@@ -81,7 +81,10 @@ def _word(word):
                 units.append([cluster, ""])
                 cluster = ""
             if units:
-                units[-1][1] = (units[-1][1] if units[-1][1] is not None else "a") + NASAL[ch]
+                cur = units[-1][1] if units[-1][1] is not None else "a"
+                if cur == "e" and ch in "ंँ":
+                    cur = "ei"
+                units[-1][1] = cur + NASAL[ch]
             i += 1
             continue
         if ch == NUKTA_CH or ch == VIRAMA:
