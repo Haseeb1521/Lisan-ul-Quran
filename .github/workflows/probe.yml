@@ -11,32 +11,15 @@ jobs:
       - name: Probe
         run: |
           B=https://api.quran.com/api/v4
-          echo "== translations (hindi/roman/hinglish/urdu)"
-          curl -s "$B/resources/translations" | python3 -c "
+          echo "== roman 831 samples"
+          for k in 1:2 2:30 112:1; do curl -s "$B/verses/by_key/$k?translations=831" | python3 -c "import json,sys; print(json.load(sys.stdin)['verse']['translations'][0]['text'][:600])"; done
+          echo "== all tafsirs"
+          curl -s "$B/resources/tafsirs" | python3 -c "
           import json,sys
-          for t in json.load(sys.stdin)['translations']:
-              if t.get('language_name','').lower() in ('hindi','urdu') or 'roman' in (t.get('name','')+t.get('author_name','')).lower() or 'hinglish' in (t.get('name','')+t.get('author_name','')).lower():
-                  print(t['id'], t['language_name'], '|', t.get('name'), '|', t.get('author_name'))
+          for t in json.load(sys.stdin)['tafsirs']: print(t['id'], t['language_name'], '|', t['name'], '|', t.get('author_name'))
           "
-          echo "== word language hi"
-          curl -s "$B/verses/by_key/1:2?words=true&language=hi&word_fields=text_uthmani" | python3 -c "
+          echo "== hindi wbw sample 2:30"
+          curl -s "$B/verses/by_key/2:30?words=true&language=hi" | python3 -c "
           import json,sys
-          v=json.load(sys.stdin)['verse']
-          for w in v['words']: print(w.get('char_type_name'), w.get('text_uthmani'), '|', (w.get('translation') or {}).get('text'), '|', (w.get('transliteration') or {}).get('text'))
-          "
-          echo "== word language ur"
-          curl -s "$B/verses/by_key/1:2?words=true&language=ur" | python3 -c "
-          import json,sys
-          v=json.load(sys.stdin)['verse']
-          for w in v['words']: print((w.get('translation') or {}).get('text'))
-          "
-          echo "== hindi translation sample"
-          curl -s "$B/verses/by_key/1:2?translations=122" | python3 -c "
-          import json,sys
-          print(json.load(sys.stdin)['verse'].get('translations'))
-          "
-          echo "== languages"
-          curl -s "$B/resources/languages" | python3 -c "
-          import json,sys
-          print([l['iso_code'] for l in json.load(sys.stdin)['languages']])
+          print(' / '.join((w.get('translation') or {}).get('text','') for w in json.load(sys.stdin)['verse']['words']))
           "
