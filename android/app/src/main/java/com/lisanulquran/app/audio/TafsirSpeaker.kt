@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +13,7 @@ import java.util.Locale
 
 /** Reads a tafsir aloud with the phone's text-to-speech (Urdu or English voice). */
 object TafsirSpeaker {
+    private const val GOOGLE_TTS = "com.google.android.tts"
     private var tts: TextToSpeech? = null
     private var ready = false
     private var pendingStart: (() -> Unit)? = null
@@ -46,34 +48,56 @@ object TafsirSpeaker {
             return
         }
         pendingStart = onReady
-        if (tts == null) {
-            tts = TextToSpeech(context.applicationContext) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    ready = true
-                    tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                        override fun onStart(utteranceId: String?) {}
-                        override fun onDone(utteranceId: String?) {
-                            val id = utteranceId ?: return
-                            if (id.endsWith("#last") && id.startsWith("${speakingKey}#")) speakingKey = null
-                        }
+        if (tts == null) createEngine(context.applicationContext, GOOGLE_TTS)
+    }
 
-                        @Deprecated("Deprecated in Java")
-                        override fun onError(utteranceId: String?) {
-                            val id = utteranceId ?: return
-                            if (id.startsWith("${speakingKey}#")) speakingKey = null
-                        }
-                    })
-                    pendingStart?.invoke()
-                    pendingStart = null
-                } else {
-                    tts = null
-                    message = tr(
-                        "Phone ka text-to-speech chalu nahi ho paya.",
-                        "The phone's text-to-speech could not start."
-                    )
-                }
+    private fun createEngine(app: Context, engine: String?) {
+        val listener = TextToSpeech.OnInitListener { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                ready = true
+                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {}
+                    override fun onDone(utteranceId: String?) {
+                        val id = utteranceId ?: return
+                        if (id.endsWith("#last") && id.startsWith("${speakingKey}#")) speakingKey = null
+                    }
+
+                    @Deprecated("Deprecated in Java")
+                    override fun onError(utteranceId: String?) {
+                        val id = utteranceId ?: return
+                        if (id.startsWith("${speakingKey}#")) speakingKey = null
+                    }
+                })
+                pendingStart?.invoke()
+                pendingStart = null
+            } else if (engine != null) {
+                tts?.shutdown()
+                tts = null
+                createEngine(app, null)
+            } else {
+                tts = null
+                message = tr(
+                    "Phone ka text-to-speech chalu nahi ho paya.",
+                    "The phone's text-to-speech could not start."
+                )
             }
         }
+        tts = if (engine != null) TextToSpeech(app, listener, engine) else TextToSpeech(app, listener)
+    }
+
+    /** Picks the best installed voice for the language (highest quality, installed, exact country). */
+    private fun pickBestVoice(t: TextToSpeech, locale: Locale): Voice? {
+        val voices = try { t.voices } catch (_: Exception) { null } ?: return null
+        return voices
+            .filter { it.locale.language == locale.language }
+            .filter { !it.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
+            .maxWithOrNull(
+                compareBy<Voice>(
+                    { it.quality },
+                    { if (it.locale.country == locale.country) 1 else 0 },
+                    { if (it.isNetworkConnectionRequired) 1 else 0 }
+                )
+            )
     }
 
     private fun start(context: Context, key: String, text: String, lang: String) {
@@ -100,7 +124,9 @@ object TafsirSpeaker {
             }
             return
         }
-        t.setSpeechRate(0.9f)
+        pickBestVoice(t, locale)?.let { v -> runCatching { t.voice = v } }
+        t.setSpeechRate(0.92f)
+        t.setPitch(1.0f)
         val chunks = chunk(text, minOf(TextToSpeech.getMaxSpeechInputLength() - 200, 3000))
         if (chunks.isEmpty()) return
         t.stop()
