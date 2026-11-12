@@ -17,10 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lisanulquran.app.audio.ArabicTtsManager
 import com.lisanulquran.app.audio.QuranAudioPlayerManager
+import com.lisanulquran.app.audio.TafsirSpeaker
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.local.AyahEntity
 import com.lisanulquran.app.data.local.QuranDatabase
-import com.lisanulquran.app.data.local.tafsirLangFor
 import com.lisanulquran.app.data.local.WordEntity
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
@@ -41,7 +41,12 @@ fun DailyAyahScreen(navController: NavController) {
     val dao = remember { QuranDatabase.getDatabase(context).quranDao() }
     val player = QuranAudioPlayerManager
     val tts = remember { ArabicTtsManager(context) }
-    DisposableEffect(Unit) { onDispose { tts.release() } }
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.release()
+            TafsirSpeaker.stop()
+        }
+    }
     val lang = AppSettings.meaningLang
 
     val data by produceState<DailyData?>(null) {
@@ -57,9 +62,13 @@ fun DailyAyahScreen(navController: NavController) {
             )
         }
     }
-    val tafsir by produceState<String?>(null, data, lang) {
+    val tafsirUr by produceState<String?>(null, data) {
         val d = data
-        value = if (d == null) null else dao.tafsirFor(d.ayah.surah, d.ayah.ayah, tafsirLangFor(lang))?.text
+        value = if (d == null) null else dao.tafsirFor(d.ayah.surah, d.ayah.ayah, "ur")?.text
+    }
+    val tafsirEn by produceState<String?>(null, data) {
+        val d = data
+        value = if (d == null) null else dao.tafsirFor(d.ayah.surah, d.ayah.ayah, "en")?.text
     }
 
     Column(
@@ -80,7 +89,8 @@ fun DailyAyahScreen(navController: NavController) {
                 AyahCard(
                     ayah = d.ayah,
                     words = d.words,
-                    tafsirText = tafsir,
+                    tafsirUr = tafsirUr,
+                    tafsirEn = tafsirEn,
                     lang = lang,
                     showWords = true,
                     headerLabel = "${d.chapterName} ${d.ayah.surah}:${d.ayah.ayah}",

@@ -22,10 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -43,12 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lisanulquran.app.audio.TafsirSpeaker
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.data.local.AyahEntity
@@ -175,7 +180,8 @@ fun WordFlow(words: List<WordEntity>, lang: String, onWordClick: (WordEntity) ->
 fun AyahCard(
     ayah: AyahEntity,
     words: List<WordEntity>,
-    tafsirText: String?,
+    tafsirUr: String?,
+    tafsirEn: String?,
     lang: String,
     showWords: Boolean,
     headerLabel: String = ayah.ayah.toString(),
@@ -221,42 +227,80 @@ fun AyahCard(
             lineHeight = if (lang == "ur") 32.sp else 24.sp,
             color = MaterialTheme.colorScheme.onSurface
         )
-        if (tafsirText != null) {
+        val shown = if (lang == "ur") tafsirUr else tafsirEn
+        if (shown != null || tafsirUr != null || tafsirEn != null) {
+            val context = LocalContext.current
             Spacer(Modifier.height(8.dp))
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .clickable { tafsirOpen = !tafsirOpen }
+                    .clickable(enabled = shown != null) { tafsirOpen = !tafsirOpen }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Tafsir", color = Emerald, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    if (lang == "ur") "  Bayan-ul-Quran" else "  Ibn Kathir (Abridged, English)",
-                    color = Muted,
-                    fontSize = 12.sp
-                )
-                Icon(
-                    if (tafsirOpen) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = Emerald
-                )
+                if (shown != null) {
+                    Text(
+                        if (lang == "ur") "  Bayan-ul-Quran" else "  Ibn Kathir (Abridged, English)",
+                        color = Muted,
+                        fontSize = 12.sp
+                    )
+                    Icon(
+                        if (tafsirOpen) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = Emerald
+                    )
+                }
             }
-            if (tafsirOpen) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (tafsirUr != null) {
+                    ListenChip(
+                        label = tr("Urdu mein sunein", "Listen in Urdu"),
+                        active = TafsirSpeaker.speakingKey == "${ayah.surah}:${ayah.ayah}:ur"
+                    ) { TafsirSpeaker.toggle(context, "${ayah.surah}:${ayah.ayah}:ur", tafsirUr, "ur") }
+                }
+                if (tafsirEn != null) {
+                    ListenChip(
+                        label = tr("English mein sunein", "Listen in English"),
+                        active = TafsirSpeaker.speakingKey == "${ayah.surah}:${ayah.ayah}:en"
+                    ) { TafsirSpeaker.toggle(context, "${ayah.surah}:${ayah.ayah}:en", tafsirEn, "en") }
+                }
+            }
+            if (TafsirSpeaker.message != null && TafsirSpeaker.messageKey?.startsWith("${ayah.surah}:${ayah.ayah}:") == true) {
+                Text(TafsirSpeaker.message ?: "", color = Gold, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+            }
+            if (tafsirOpen && shown != null) {
                 if (lang == "ro") {
                     Text(
-                        tr("Roman mein tafsir available nahi hai, isliye English dikha rahe hain.", "A Roman tafsir isn't available, so the English one is shown."),
+                        tr("Roman mein tafsir available nahi hai, isliye English dikha rahe hain. Upar se Urdu ya English mein sun sakte hain.", "A Roman tafsir isn't available, so the English one is shown. You can listen in Urdu or English above."),
                         color = Gold,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
                 Text(
-                    tafsirText,
+                    shown,
                     color = Muted,
                     fontSize = if (lang == "ur") 17.sp else 15.sp,
-                    lineHeight = if (lang == "ur") 30.sp else 23.sp
+                    lineHeight = if (lang == "ur") 30.sp else 23.sp,
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ListenChip(label: String, active: Boolean, onClick: () -> Unit) {
+    AssistChip(
+        onClick = onClick,
+        label = { Text(if (active) tr("Rokein", "Stop") else label, fontSize = 12.sp) },
+        leadingIcon = {
+            Icon(
+                if (active) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                contentDescription = null,
+                tint = Emerald
+            )
+        }
+    )
 }

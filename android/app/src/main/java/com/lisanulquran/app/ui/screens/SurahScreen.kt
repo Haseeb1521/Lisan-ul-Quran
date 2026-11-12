@@ -39,10 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.lisanulquran.app.audio.ArabicTtsManager
 import com.lisanulquran.app.audio.QuranAudioPlayerManager
+import com.lisanulquran.app.audio.TafsirSpeaker
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.local.ChapterEntity
 import com.lisanulquran.app.data.local.QuranDatabase
-import com.lisanulquran.app.data.local.tafsirLangFor
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
 import com.lisanulquran.app.ui.components.LanguageChips
@@ -58,16 +58,23 @@ fun SurahScreen(navController: NavController, surahId: Int) {
     val chapter by produceState<ChapterEntity?>(null, surahId) { value = dao.chapter(surahId) }
     val ayahs by remember(surahId) { dao.ayahs(surahId) }.collectAsState(initial = emptyList())
     val words by remember(surahId) { dao.words(surahId) }.collectAsState(initial = emptyList())
-    val tafsir by remember(surahId, lang) { dao.tafsir(surahId, tafsirLangFor(lang)) }.collectAsState(initial = emptyList())
+    val tafsirUrList by remember(surahId) { dao.tafsir(surahId, "ur") }.collectAsState(initial = emptyList())
+    val tafsirEnList by remember(surahId) { dao.tafsir(surahId, "en") }.collectAsState(initial = emptyList())
 
     val wordsByAyah = remember(words) { words.groupBy { it.ayah } }
-    val tafsirByAyah = remember(tafsir) { tafsir.associate { it.ayah to it.text } }
+    val tafsirUrByAyah = remember(tafsirUrList) { tafsirUrList.associate { it.ayah to it.text } }
+    val tafsirEnByAyah = remember(tafsirEnList) { tafsirEnList.associate { it.ayah to it.text } }
 
     var showWords by rememberSaveable { mutableStateOf(true) }
 
     val player = QuranAudioPlayerManager
     val tts = remember { ArabicTtsManager(context) }
-    DisposableEffect(Unit) { onDispose { tts.release() } }
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.release()
+            TafsirSpeaker.stop()
+        }
+    }
 
     val thisSurahLoaded = player.hasMedia && player.surahId == surahId
     val listState = rememberLazyListState()
@@ -139,7 +146,8 @@ fun SurahScreen(navController: NavController, surahId: Int) {
             AyahCard(
                 ayah = ayah,
                 words = wordsByAyah[ayah.ayah].orEmpty(),
-                tafsirText = tafsirByAyah[ayah.ayah],
+                tafsirUr = tafsirUrByAyah[ayah.ayah],
+                tafsirEn = tafsirEnByAyah[ayah.ayah],
                 lang = lang,
                 showWords = showWords,
                 isCurrent = isCurrent,
