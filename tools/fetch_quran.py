@@ -9,6 +9,9 @@ import time
 import urllib.parse
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from deva_roman import to_roman  # noqa: E402
+
 BASE = "https://api.quran.com/api/v4"
 OUT = sys.argv[1] if len(sys.argv) > 1 else "android/app/src/main/assets"
 EXPECTED_AYAHS = 6236
@@ -105,20 +108,29 @@ def main():
     english = pick_translation(trs, "english", ["saheeh", "clear quran", "khattab"])
     print("urdu translation:", urdu and (urdu["id"], urdu.get("name"), urdu.get("author_name")))
     print("english translation:", english and (english["id"], english.get("name"), english.get("author_name")))
-    ids = [t["id"] for t in (urdu, english) if t]
+    roman = next((t for t in trs if t["id"] == 831), None) or next(
+        (t for t in trs if "roman" in (t.get("name", "") + t.get("author_name", "")).lower()), None
+    )
+    print("roman translation:", roman and (roman["id"], roman.get("name"), roman.get("author_name")))
+    ids = [t["id"] for t in (urdu, english, roman) if t]
 
     ayahs = []
     total_words = 0
     ur_words = 0
+    ro_words = 0
     for ch in chapters:
         cid = ch["id"]
         en_verses = fetch_verses(cid, "en", ids)
         ur_verses = fetch_verses(cid, "ur", [])
         ur_by_num = {v["verse_number"]: v for v in ur_verses}
+        hi_verses = fetch_verses(cid, "hi", [])
+        hi_by_num = {v["verse_number"]: v for v in hi_verses}
         for v in en_verses:
             num = v["verse_number"]
             ur_v = ur_by_num.get(num)
             ur_ws = real_words(ur_v) if ur_v else []
+            hi_v = hi_by_num.get(num)
+            hi_ws = real_words(hi_v) if hi_v else []
             words = []
             for i, w in enumerate(real_words(v)):
                 tr = clean((w.get("transliteration") or {}).get("text", ""))
@@ -126,10 +138,15 @@ def main():
                 ur = ""
                 if i < len(ur_ws):
                     ur = clean((ur_ws[i].get("translation") or {}).get("text", ""))
-                words.append([word_text(w), tr, en, ur])
+                ro = ""
+                if i < len(hi_ws):
+                    ro = to_roman(clean((hi_ws[i].get("translation") or {}).get("text", "")))
+                words.append([word_text(w), tr, en, ur, ro])
                 total_words += 1
                 if ur:
                     ur_words += 1
+                if ro:
+                    ro_words += 1
             tmap = {t.get("resource_id"): clean(t.get("text", "")) for t in v.get("translations", [])}
             ayahs.append(
                 {
@@ -138,6 +155,7 @@ def main():
                     "ar": (v.get("text_uthmani") or "").strip(),
                     "ur": tmap.get(urdu["id"], "") if urdu else "",
                     "en": tmap.get(english["id"], "") if english else "",
+                    "ro": tmap.get(roman["id"], "") if roman else "",
                     "w": words,
                 }
             )
@@ -145,7 +163,12 @@ def main():
 
     if len(ayahs) != EXPECTED_AYAHS:
         raise SystemExit(f"Expected {EXPECTED_AYAHS} ayahs but got {len(ayahs)}")
-    print(f"ayahs: {len(ayahs)}, words: {total_words}, words with urdu meaning: {ur_words}")
+    print(f"ayahs: {len(ayahs)}, words: {total_words}, words with urdu meaning: {ur_words}, with roman meaning: {ro_words}")
+    print("roman ayahs:", sum(1 for a in ayahs if a["ro"]))
+    for a in ayahs:
+        if a["s"] == 2 and a["a"] == 30:
+            print("SAMPLE words:", [w[4] for w in a["w"]])
+            print("SAMPLE ayah ro:", a["ro"][:200])
 
     with open(os.path.join(OUT, "quran.json"), "w", encoding="utf-8") as f:
         json.dump({"chapters": chapters, "ayahs": ayahs}, f, ensure_ascii=False, separators=(",", ":"))

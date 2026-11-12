@@ -111,6 +111,7 @@ fun NumberBadge(text: String, modifier: Modifier = Modifier) {
 fun LanguageChips() {
     val lang = AppSettings.meaningLang
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        FilterChip(selected = lang == "ro", onClick = { AppSettings.changeMeaningLang("ro") }, label = { Text("Roman") })
         FilterChip(selected = lang == "ur", onClick = { AppSettings.changeMeaningLang("ur") }, label = { Text("اردو") })
         FilterChip(selected = lang == "en", onClick = { AppSettings.changeMeaningLang("en") }, label = { Text("English") })
     }
@@ -156,7 +157,7 @@ fun WordFlow(words: List<WordEntity>, lang: String, onWordClick: (WordEntity) ->
                 ) {
                     Text(w.arabic, fontSize = 26.sp, color = Gold, lineHeight = 40.sp)
                     Text(
-                        meaningOf(w.en, w.ur, lang),
+                        meaningOf(w.en, w.ur, w.ro, lang),
                         fontSize = 11.sp,
                         color = Muted,
                         textAlign = TextAlign.Center,
@@ -208,7 +209,11 @@ fun AyahCard(
             }
         }
         Spacer(Modifier.height(12.dp))
-        val translation = if (lang == "ur") ayah.urdu.ifBlank { ayah.english } else ayah.english.ifBlank { ayah.urdu }
+        val translation = when (lang) {
+            "ur" -> ayah.urdu.ifBlank { ayah.english }
+            "ro" -> ayah.roman.ifBlank { ayah.english }
+            else -> ayah.english.ifBlank { ayah.urdu }
+        }
         Text(
             translation,
             style = MaterialTheme.typography.bodyLarge,
@@ -227,7 +232,7 @@ fun AyahCard(
             ) {
                 Text("Tafsir", color = Emerald, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    if (lang == "ur") "  Bayan-ul-Quran" else "  Ibn Kathir (Abridged)",
+                    if (lang == "ur") "  Bayan-ul-Quran" else "  Ibn Kathir (Abridged, English)",
                     color = Muted,
                     fontSize = 12.sp
                 )
@@ -238,6 +243,13 @@ fun AyahCard(
                 )
             }
             if (tafsirOpen) {
+                if (lang == "ro") {
+                    Text(
+                        tr("Roman mein tafsir available nahi hai, isliye English dikha rahe hain.", "A Roman tafsir isn't available, so the English one is shown."),
+                        color = Gold,
+                        fontSize = 12.sp
+                    )
+                }
                 Text(
                     tafsirText,
                     color = Muted,

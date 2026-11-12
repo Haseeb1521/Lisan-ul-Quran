@@ -18,7 +18,8 @@ data class AyahEntity(
     val ayah: Int,
     val arabic: String,
     val urdu: String,
-    val english: String
+    val english: String,
+    val roman: String = ""
 )
 
 @Entity(
@@ -33,7 +34,8 @@ data class WordEntity(
     val arabic: String,
     val translit: String,
     val en: String,
-    val ur: String
+    val ur: String,
+    val ro: String = ""
 )
 
 @Entity(tableName = "tafsir", primaryKeys = ["surah", "ayah", "lang"])
@@ -49,11 +51,18 @@ data class VocabRow(
     val translit: String,
     val en: String,
     val ur: String,
+    val ro: String,
     val freq: Int
 )
 
-fun meaningOf(en: String, ur: String, lang: String): String =
-    if (lang == "ur") ur.ifBlank { en } else en.ifBlank { ur }
+fun meaningOf(en: String, ur: String, ro: String, lang: String): String = when (lang) {
+    "ur" -> ur.ifBlank { en }
+    "ro" -> ro.ifBlank { en.ifBlank { ur } }
+    else -> en.ifBlank { ur }
+}
+
+/** Roman has no tafsir of its own, so it shows the English one. */
+fun tafsirLangFor(lang: String): String = if (lang == "ur") "ur" else "en"
 
 @Dao
 interface QuranDao {
@@ -88,17 +97,18 @@ interface QuranDao {
     suspend fun tafsirFor(surah: Int, ayah: Int, lang: String): TafsirEntity?
 
     @Query(
-        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, COUNT(*) AS freq
+        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, MAX(ro) AS ro, COUNT(*) AS freq
            FROM words
            WHERE :q = '' OR en LIKE '%' || :q || '%' OR ur LIKE '%' || :q || '%'
                  OR translit LIKE '%' || :q || '%' OR arabic LIKE '%' || :q || '%'
+                 OR ro LIKE '%' || :q || '%'
            GROUP BY arabic
            ORDER BY freq DESC, arabic"""
     )
     fun vocab(q: String): Flow<List<VocabRow>>
 
     @Query(
-        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, COUNT(*) AS freq
+        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, MAX(ro) AS ro, COUNT(*) AS freq
            FROM words
            GROUP BY arabic
            HAVING COUNT(*) >= 30 AND MAX(en) != ''
@@ -108,7 +118,7 @@ interface QuranDao {
     suspend fun randomVocab(n: Int): List<VocabRow>
 
     @Query(
-        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, COUNT(*) AS freq
+        """SELECT arabic, MAX(translit) AS translit, MAX(en) AS en, MAX(ur) AS ur, MAX(ro) AS ro, COUNT(*) AS freq
            FROM words
            WHERE arabic IN (:list)
            GROUP BY arabic

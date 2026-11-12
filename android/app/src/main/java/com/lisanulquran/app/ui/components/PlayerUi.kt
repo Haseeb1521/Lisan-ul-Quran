@@ -177,11 +177,15 @@ fun PlayerSheet(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
-                val tl = if (AppSettings.meaningLang == "ur") a.urdu.ifBlank { a.english } else a.english.ifBlank { a.urdu }
+                val tl = when (AppSettings.meaningLang) {
+                    "ur" -> a.urdu.ifBlank { a.english }
+                    "ro" -> a.roman.ifBlank { a.english }
+                    else -> a.english.ifBlank { a.urdu }
+                }
                 Text(
                     tl,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = if (AppSettings.meaningLang == "ur") 18.sp else 15.sp,
+                    fontSize = if (AppSettings.meaningLang == "ur") 18.sp else 16.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )

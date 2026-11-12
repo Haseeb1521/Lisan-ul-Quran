@@ -42,6 +42,7 @@ import com.lisanulquran.app.audio.QuranAudioPlayerManager
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.local.ChapterEntity
 import com.lisanulquran.app.data.local.QuranDatabase
+import com.lisanulquran.app.data.local.tafsirLangFor
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
 import com.lisanulquran.app.ui.components.LanguageChips
@@ -57,7 +58,7 @@ fun SurahScreen(navController: NavController, surahId: Int) {
     val chapter by produceState<ChapterEntity?>(null, surahId) { value = dao.chapter(surahId) }
     val ayahs by remember(surahId) { dao.ayahs(surahId) }.collectAsState(initial = emptyList())
     val words by remember(surahId) { dao.words(surahId) }.collectAsState(initial = emptyList())
-    val tafsir by remember(surahId, lang) { dao.tafsir(surahId, lang) }.collectAsState(initial = emptyList())
+    val tafsir by remember(surahId, lang) { dao.tafsir(surahId, tafsirLangFor(lang)) }.collectAsState(initial = emptyList())
 
     val wordsByAyah = remember(words) { words.groupBy { it.ayah } }
     val tafsirByAyah = remember(tafsir) { tafsir.associate { it.ayah to it.text } }

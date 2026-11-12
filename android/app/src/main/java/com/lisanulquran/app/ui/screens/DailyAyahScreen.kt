@@ -20,6 +20,7 @@ import com.lisanulquran.app.audio.QuranAudioPlayerManager
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.local.AyahEntity
 import com.lisanulquran.app.data.local.QuranDatabase
+import com.lisanulquran.app.data.local.tafsirLangFor
 import com.lisanulquran.app.data.local.WordEntity
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
@@ -58,7 +59,7 @@ fun DailyAyahScreen(navController: NavController) {
     }
     val tafsir by produceState<String?>(null, data, lang) {
         val d = data
-        value = if (d == null) null else dao.tafsirFor(d.ayah.surah, d.ayah.ayah, lang)?.text
+        value = if (d == null) null else dao.tafsirFor(d.ayah.surah, d.ayah.ayah, tafsirLangFor(lang))?.text
     }
 
     Column(

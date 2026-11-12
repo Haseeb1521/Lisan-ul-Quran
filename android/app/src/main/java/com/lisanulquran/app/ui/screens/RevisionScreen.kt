@@ -80,7 +80,7 @@ fun RevisionScreen(navController: NavController) {
                         if (revealed) {
                             if (row.translit.isNotBlank()) Text(row.translit, color = Emerald, fontSize = 13.sp)
                             Text(
-                                meaningOf(row.en, row.ur, lang),
+                                meaningOf(row.en, row.ur, row.ro, lang),
                                 fontSize = if (lang == "ur") 18.sp else 16.sp
                             )
                         } else {

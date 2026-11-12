@@ -13,7 +13,7 @@ object AppSettings {
 
     var uiEnglish by mutableStateOf(false)
         private set
-    var meaningLang by mutableStateOf("ur")
+    var meaningLang by mutableStateOf("ro")
         private set
     var reciterIndex by mutableIntStateOf(0)
         private set
@@ -23,7 +23,7 @@ object AppSettings {
         val p = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         prefs = p
         uiEnglish = p.getBoolean("ui_english", false)
-        meaningLang = p.getString("meaning_lang", "ur") ?: "ur"
+        meaningLang = p.getString("meaning_lang", "ro") ?: "ro"
         reciterIndex = p.getInt("reciter", 0)
     }
 

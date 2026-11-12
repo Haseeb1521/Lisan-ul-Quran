@@ -60,8 +60,8 @@ fun QuizScreen(navController: NavController) {
 
     LaunchedEffect(round, lang) {
         val pool = dao.randomVocab(120)
-            .filter { meaningOf(it.en, it.ur, lang).isNotBlank() }
-            .distinctBy { meaningOf(it.en, it.ur, lang) }
+            .filter { meaningOf(it.en, it.ur, it.ro, lang).isNotBlank() }
+            .distinctBy { meaningOf(it.en, it.ur, it.ro, lang) }
         val list = ArrayList<QuizQuestion>()
         if (pool.size >= 4) {
             for (i in 0 until minOf(ROUND_SIZE, pool.size)) {
@@ -145,7 +145,7 @@ fun QuizScreen(navController: NavController) {
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = color)
                 ) {
                     Text(
-                        meaningOf(opt.en, opt.ur, lang),
+                        meaningOf(opt.en, opt.ur, opt.ro, lang),
                         fontSize = if (lang == "ur") 18.sp else 16.sp,
                         modifier = Modifier.padding(vertical = 4.dp)
                     )

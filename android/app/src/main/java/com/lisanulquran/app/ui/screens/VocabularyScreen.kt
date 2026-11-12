@@ -106,7 +106,7 @@ fun VocabularyScreen(navController: NavController) {
                             Text(row.translit, color = Emerald, fontSize = 13.sp)
                         }
                         Text(
-                            meaningOf(row.en, row.ur, lang),
+                            meaningOf(row.en, row.ur, row.ro, lang),
                             style = MaterialTheme.typography.bodyLarge,
                             fontSize = if (lang == "ur") 18.sp else 16.sp
                         )

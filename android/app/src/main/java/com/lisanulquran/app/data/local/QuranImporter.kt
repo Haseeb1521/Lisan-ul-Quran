@@ -75,7 +75,7 @@ object QuranImporter {
                     var done = 0
                     r.beginArray()
                     while (r.hasNext()) {
-                        var s = 0; var a = 0; var ar = ""; var ur = ""; var en = ""
+                        var s = 0; var a = 0; var ar = ""; var ur = ""; var en = ""; var ro = ""
                         val words = ArrayList<Array<String>>()
                         r.beginObject()
                         while (r.hasNext()) {
@@ -85,15 +85,16 @@ object QuranImporter {
                                 "ar" -> ar = r.nextString()
                                 "ur" -> ur = r.nextString()
                                 "en" -> en = r.nextString()
+                                "ro" -> ro = r.nextString()
                                 "w" -> {
                                     r.beginArray()
                                     while (r.hasNext()) {
-                                        val parts = arrayOf("", "", "", "")
+                                        val parts = arrayOf("", "", "", "", "")
                                         r.beginArray()
                                         var i = 0
                                         while (r.hasNext()) {
                                             val v = if (r.peek() == JsonToken.NULL) { r.nextNull(); "" } else r.nextString()
-                                            if (i < 4) parts[i] = v
+                                            if (i < 5) parts[i] = v
                                             i++
                                         }
                                         r.endArray()
@@ -105,9 +106,9 @@ object QuranImporter {
                             }
                         }
                         r.endObject()
-                        ayahBatch.add(AyahEntity(s, a, ar, ur, en))
+                        ayahBatch.add(AyahEntity(s, a, ar, ur, en, ro))
                         words.forEachIndexed { idx, p ->
-                            wordBatch.add(WordEntity(surah = s, ayah = a, position = idx + 1, arabic = p[0], translit = p[1], en = p[2], ur = p[3]))
+                            wordBatch.add(WordEntity(surah = s, ayah = a, position = idx + 1, arabic = p[0], translit = p[1], en = p[2], ur = p[3], ro = p[4]))
                         }
                         done++
                         if (ayahBatch.size >= 100) {
