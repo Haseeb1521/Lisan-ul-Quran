@@ -1,6 +1,7 @@
 package com.lisanulquran.app.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -38,8 +41,17 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,29 +88,38 @@ fun AppCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     highlight: Boolean = false,
+    accent: Color? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val base = modifier.fillMaxWidth().animateContentSize()
     val colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-    val shape = RoundedCornerShape(18.dp)
-    val border = BorderStroke(if (highlight) 2.dp else 1.dp, if (highlight) Gold else MaterialTheme.colorScheme.outline)
+    val shape = RoundedCornerShape(22.dp)
+    val border = if (highlight) BorderStroke(2.dp, GoldBrush) else BorderStroke(1.dp, Color(0xFF284B3D))
+    val inner = Modifier
+        .background(CardBrush)
+        .drawBehind {
+            if (accent != null) drawRect(accent, size = Size(4.dp.toPx(), size.height))
+        }
+        .padding(16.dp)
     if (onClick != null) {
         Card(onClick = onClick, modifier = base, colors = colors, shape = shape, border = border) {
-            Column(Modifier.background(CardBrush).padding(16.dp), content = content)
+            Column(inner, content = content)
         }
     } else {
         Card(modifier = base, colors = colors, shape = shape, border = border) {
-            Column(Modifier.background(CardBrush).padding(16.dp), content = content)
+            Column(inner, content = content)
         }
     }
 }
 
 @Composable
 fun ScreenTitle(title: String, subtitle: String? = null) {
-    Column(Modifier.padding(bottom = 12.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium.copy(brush = GoldBrush))
+    Column(Modifier.padding(bottom = 14.dp)) {
+        Text(title, style = MaterialTheme.typography.headlineMedium.copy(brush = GoldBrush, fontSize = 32.sp))
+        Spacer(Modifier.height(6.dp))
+        Box(Modifier.width(44.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(GoldBrush))
         if (subtitle != null) {
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(8.dp))
             Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = Muted)
         }
     }
@@ -110,30 +131,113 @@ fun NumberBadge(text: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .defaultMinSize(minWidth = 38.dp, minHeight = 38.dp)
             .clip(RoundedCornerShape(19.dp))
-            .background(CardLight)
+            .background(Color(0xFF0E2119))
             .border(1.5.dp, GoldBrush, RoundedCornerShape(19.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Emerald, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
+        Text(text, color = Gold, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp))
     }
+}
+
+/** Eight-pointed star badge used for the surah number. */
+@Composable
+fun StarBadge(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(52.dp)
+            .drawBehind {
+                val cx = size.width / 2f
+                val cy = size.height / 2f
+                val r = size.minDimension / 2f
+                val p = Path()
+                for (k in 0 until 16) {
+                    val a = (k * Math.PI / 8 - Math.PI / 2).toFloat()
+                    val rad = if (k % 2 == 0) r else r * 0.78f
+                    val x = cx + rad * cos(a)
+                    val y = cy + rad * sin(a)
+                    if (k == 0) p.moveTo(x, y) else p.lineTo(x, y)
+                }
+                p.close()
+                drawPath(p, Color(0xFF0E2119))
+                drawPath(p, GoldBrush, style = Stroke(width = 1.6.dp.toPx()))
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = Gold, fontSize = if (text.length > 2) 12.sp else 15.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(50)
+    Row(
+        modifier
+            .clip(shape)
+            .background(Color(0xFF0A1511))
+            .border(1.dp, Color(0xFF284B3D), shape)
+            .padding(3.dp)
+    ) {
+        options.forEachIndexed { i, label ->
+            val sel = i == selected
+            val bg by animateColorAsState(if (sel) Emerald else Color.Transparent, label = "seg")
+            Box(
+                Modifier
+                    .clip(shape)
+                    .background(bg)
+                    .clickable { onSelect(i) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    label,
+                    color = if (sel) DeepBlack else Muted,
+                    fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        singleLine = true,
+        shape = RoundedCornerShape(50),
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Emerald) },
+        placeholder = { Text(placeholder, color = Muted, fontSize = 14.sp) },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Emerald,
+            unfocusedBorderColor = Color(0xFF284B3D),
+            focusedContainerColor = Color(0xFF0F1F18),
+            unfocusedContainerColor = Color(0xFF0F1F18),
+            cursorColor = Emerald
+        )
+    )
 }
 
 @Composable
 fun LanguageChips() {
-    val lang = AppSettings.meaningLang
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        FilterChip(selected = lang == "ro", onClick = { AppSettings.changeMeaningLang("ro") }, label = { Text("Roman") })
-        FilterChip(selected = lang == "ur", onClick = { AppSettings.changeMeaningLang("ur") }, label = { Text("اردو") })
-        FilterChip(selected = lang == "en", onClick = { AppSettings.changeMeaningLang("en") }, label = { Text("English") })
-    }
+    val keys = listOf("ro", "ur", "en")
+    Segmented(
+        options = listOf("Roman", "اردو", "English"),
+        selected = keys.indexOf(AppSettings.meaningLang).coerceAtLeast(0),
+        onSelect = { AppSettings.changeMeaningLang(keys[it]) }
+    )
 }
 
 @Composable
 fun UiLanguageChips() {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(tr("App ki zuban:", "App language:"), color = Muted, fontSize = 13.sp)
-        FilterChip(selected = !AppSettings.uiEnglish, onClick = { AppSettings.changeUiEnglish(false) }, label = { Text("Hinglish") })
-        FilterChip(selected = AppSettings.uiEnglish, onClick = { AppSettings.changeUiEnglish(true) }, label = { Text("English") })
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(tr("App ki zuban", "App language"), color = Muted, fontSize = 13.sp)
+        Segmented(
+            options = listOf("Hinglish", "English"),
+            selected = if (AppSettings.uiEnglish) 1 else 0,
+            onSelect = { AppSettings.changeUiEnglish(it == 1) }
+        )
     }
 }
 

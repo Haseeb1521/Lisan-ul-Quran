@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.LisanUlQuran" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">#0A0A0A</item>
-        <item name="android:statusBarColor">#0A0A0A</item>
-        <item name="android:navigationBarColor">#064E3B</item>
+        <item name="android:windowBackground">#08100D</item>
+        <item name="android:statusBarColor">#0C2119</item>
+        <item name="android:navigationBarColor">#0B1A14</item>
     </style>
 </resources>

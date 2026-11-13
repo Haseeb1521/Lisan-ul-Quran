@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -118,7 +119,9 @@ fun SurahScreen(navController: NavController, surahId: Int) {
                     if (thisSurahLoaded) player.togglePlayPause()
                     else player.play(context, surahId, name, count, 1)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Gold, contentColor = com.lisanulquran.app.ui.theme.DeepBlack)
             ) {
                 val playing = thisSurahLoaded && player.isPlaying
                 Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null)

@@ -3,6 +3,17 @@ package com.lisanulquran.app.ui.screens
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import com.lisanulquran.app.ui.components.SearchField
+import com.lisanulquran.app.ui.theme.GoldBrush
+import kotlin.math.ln
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -68,6 +79,7 @@ fun VocabularyScreen(navController: NavController) {
     }
     val rows by remember(query) { dao.vocab(query) }.collectAsState(initial = emptyList())
     val learned = LearnedStore.words
+    val maxFreq = rows.maxOfOrNull { it.freq } ?: 1
 
     LazyColumn(
         modifier = Modifier
@@ -79,14 +91,7 @@ fun VocabularyScreen(navController: NavController) {
         item {
             Column {
                 ScreenTitle("Vocabulary", tr("Quran ke tamam alfaz, kitni baar aaye us hisab se", "Every word of the Quran, ordered by how often it appears"))
-                OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    placeholder = { Text(tr("Arabic, matlab ya transliteration", "Arabic, meaning or transliteration")) }
-                )
+                SearchField(input, { input = it }, tr("Arabic, matlab ya transliteration", "Arabic, meaning or transliteration"))
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -99,24 +104,63 @@ fun VocabularyScreen(navController: NavController) {
             }
         }
         items(rows, key = { it.arabic }) { row ->
-            AppCard {
+            val frac = if (maxFreq > 1) (ln(row.freq.toFloat().coerceAtLeast(1f)) / ln(maxFreq.toFloat())).coerceIn(0.04f, 1f) else 1f
+            AppCard(accent = Emerald) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(row.arabic, fontSize = 30.sp, color = Gold, lineHeight = 44.sp)
+                    Column(Modifier.weight(1f).padding(start = 4.dp)) {
+                        Text(row.arabic, fontSize = 34.sp, color = Gold, lineHeight = 50.sp)
                         if (row.translit.isNotBlank()) {
-                            Text(row.translit, color = Emerald, fontSize = 13.sp)
+                            Text(
+                                row.translit,
+                                color = Emerald,
+                                fontSize = 12.sp,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(Color(0x2234D399))
+                                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                            )
+                            Spacer(Modifier.height(6.dp))
                         }
                         Text(
                             meaningOf(row.en, row.ur, row.ro, lang),
                             style = MaterialTheme.typography.bodyLarge,
-                            fontSize = if (lang == "ur") 18.sp else 16.sp
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = if (lang == "ur") 19.sp else 17.sp
                         )
-                        Text(tr("Quran mein ${row.freq} baar", "Appears ${row.freq} times in the Quran"), color = Muted, fontSize = 12.sp)
                     }
-                    IconButton(onClick = { tts.speak(row.arabic) }) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "Listen", tint = Emerald)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x2234D399))
+                                    .clickable { tts.speak(row.arabic) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = "Listen", tint = Emerald)
+                            }
+                            StarButton(row.arabic in learned) { LearnedStore.toggle(row.arabic) }
+                        }
                     }
-                    StarButton(row.arabic in learned) { LearnedStore.toggle(row.arabic) }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color(0x22FFFFFF))
+                    ) {
+                        Box(Modifier.fillMaxWidth(frac).height(4.dp).clip(RoundedCornerShape(2.dp)).background(GoldBrush))
+                    }
+                    Text(
+                        tr("${row.freq} baar", "${row.freq}×"),
+                        color = Muted,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
                 }
             }
         }

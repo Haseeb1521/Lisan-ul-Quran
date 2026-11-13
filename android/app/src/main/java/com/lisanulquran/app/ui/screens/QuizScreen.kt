@@ -2,7 +2,25 @@ package com.lisanulquran.app.ui.screens
 
 import com.lisanulquran.app.data.AppSettings
 import com.lisanulquran.app.data.tr
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import com.lisanulquran.app.ui.theme.GoldBrush
+import com.lisanulquran.app.ui.theme.HeroBrush
+import com.lisanulquran.app.ui.theme.geoPattern
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,72 +110,162 @@ fun QuizScreen(navController: NavController) {
         if (questions.isEmpty()) {
             Text(tr("Sawal tayyar ho rahe hain...", "Preparing questions..."), color = Muted)
         } else if (index >= questions.size) {
-            AppCard {
-                Text(
-                    "Score: $score / ${questions.size}",
-                    fontSize = 28.sp,
-                    color = Gold,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+            val ratio = score.toFloat() / questions.size
+            val msg = when {
+                ratio >= 0.9f -> tr("Mashallah! Kamaal kar diya", "Mashallah! Outstanding")
+                ratio >= 0.6f -> tr("Bahut accha, aur practice karo", "Great job, keep practising")
+                else -> tr("Koi baat nahi, dobara koshish karo", "No worries, try again")
             }
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = { round++ }, modifier = Modifier.fillMaxWidth()) { Text(tr("Naya round", "New round")) }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(HeroBrush)
+                    .geoPattern(Color(0x14FFFFFF), 52.dp)
+                    .padding(28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(if (ratio >= 0.6f) "🏆" else "💪", fontSize = 64.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("$score / ${questions.size}", fontSize = 44.sp, fontWeight = FontWeight.Bold, color = Gold)
+                Text(msg, color = Color(0xFFCFE6DA), textAlign = TextAlign.Center)
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { round++ },
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(27.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = DeepBlack)
+            ) { Text(tr("Naya round", "New round"), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
         } else {
             val q = questions[index]
-            Text("${tr("Sawal", "Question")} ${index + 1} / ${questions.size}", color = Muted, fontSize = 13.sp)
-            Spacer(Modifier.height(8.dp))
-            AppCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(10.dp)
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Color(0x22FFFFFF))
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth((index + (if (selected != null) 1 else 0)).toFloat() / questions.size)
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(GoldBrush)
+                    )
+                }
+                Text(
+                    "${index + 1}/${questions.size}",
+                    color = Muted,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+                Text(
+                    "⭐ $score",
+                    color = Gold,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(HeroBrush)
+                    .border(1.dp, Color(0x33F3D27A), RoundedCornerShape(26.dp))
+                    .geoPattern(Color(0x12FFFFFF), 52.dp)
+                    .padding(vertical = 28.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     q.word.arabic,
-                    fontSize = 44.sp,
+                    fontSize = 52.sp,
                     color = Gold,
-                    lineHeight = 64.sp,
+                    lineHeight = 74.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (q.word.translit.isNotBlank()) {
                     Text(
                         q.word.translit,
-                        color = Emerald,
+                        color = Color(0xFFCFE6DA),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(Color(0x26FFFFFF))
+                            .padding(horizontal = 14.dp, vertical = 4.dp)
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
             q.options.forEachIndexed { i, opt ->
                 val chosen = selected
-                val color = when {
-                    chosen == null -> Emerald
-                    i == q.answer -> Emerald
-                    i == chosen -> ErrorRed
-                    else -> Muted
-                }
-                OutlinedButton(
-                    onClick = {
-                        if (selected == null) {
-                            selected = i
-                            if (i == q.answer) score++
-                        }
+                val isRight = chosen != null && i == q.answer
+                val isWrong = chosen != null && i == chosen && i != q.answer
+                val bg by animateColorAsState(
+                    when {
+                        isRight -> Color(0xFF14573F)
+                        isWrong -> Color(0xFF5A1F22)
+                        else -> Color(0xFF12241C)
                     },
+                    label = "opt"
+                )
+                val edge = when {
+                    isRight -> Emerald
+                    isWrong -> ErrorRed
+                    else -> Color(0xFF284B3D)
+                }
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = color)
+                        .padding(vertical = 5.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(bg)
+                        .border(1.5.dp, edge, RoundedCornerShape(18.dp))
+                        .clickable {
+                            if (selected == null) {
+                                selected = i
+                                if (i == q.answer) score++
+                            }
+                        }
+                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Box(
+                        Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x26FFFFFF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(("ABCD"[i % 4]).toString(), color = Gold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
                     Text(
                         meaningOf(opt.en, opt.ur, opt.ro, lang),
-                        fontSize = if (lang == "ur") 18.sp else 16.sp,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        fontSize = if (lang == "ur") 19.sp else 16.sp,
+                        color = Color.White,
+                        modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
                     )
+                    if (isRight) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Emerald)
+                    if (isWrong) Icon(Icons.Default.Cancel, contentDescription = null, tint = ErrorRed)
                 }
             }
             if (selected != null) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = { index++; selected = null },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(if (index + 1 < questions.size) tr("Agla sawal", "Next question") else tr("Nateeja dekhein", "See result")) }
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(27.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = DeepBlack)
+                ) {
+                    Text(
+                        if (index + 1 < questions.size) tr("Agla sawal", "Next question") else tr("Nateeja dekhein", "See result"),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
     }

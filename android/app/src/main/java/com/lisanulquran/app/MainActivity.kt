@@ -10,6 +10,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Home
@@ -133,7 +138,15 @@ private fun MainScaffold() {
         bottomBar = {
             if (!inLesson) Column {
             MiniPlayer { showPlayer = true }
-            NavigationBar(containerColor = Color(0xFF0D241B), tonalElevation = 0.dp) {
+            val barShape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(barShape)
+                    .background(com.lisanulquran.app.ui.theme.NavBg)
+                    .border(1.dp, Color(0xFF244438), barShape)
+            ) {
+            NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
                 tabs.forEach { tab ->
                     NavigationBarItem(
                         selected = currentRoute == tab.route,
@@ -147,14 +160,15 @@ private fun MainScaffold() {
                         icon = { Icon(tab.icon, contentDescription = tab.label) },
                         label = { Text(tab.label) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepBlack,
+                            selectedIconColor = Emerald,
                             selectedTextColor = Gold,
-                            indicatorColor = Emerald,
+                            indicatorColor = Color(0x3334D399),
                             unselectedIconColor = Muted,
                             unselectedTextColor = Muted
                         )
                     )
                 }
+            }
             }
             }
         }
