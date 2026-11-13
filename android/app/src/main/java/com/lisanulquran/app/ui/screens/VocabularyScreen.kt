@@ -45,6 +45,7 @@ import com.lisanulquran.app.ui.components.AppCard
 import com.lisanulquran.app.ui.components.LanguageChips
 import com.lisanulquran.app.ui.components.ScreenTitle
 import com.lisanulquran.app.ui.components.StarButton
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.Gold
@@ -71,7 +72,7 @@ fun VocabularyScreen(navController: NavController) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack),
+            .background(BgBrush),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {

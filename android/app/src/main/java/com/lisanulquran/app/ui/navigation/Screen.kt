@@ -10,4 +10,7 @@ sealed class Screen(val route: String) {
     object DailyAyah : Screen("daily_ayah")
     object Quiz : Screen("quiz")
     object Revision : Screen("revision")
+    object Lesson : Screen("lesson/{kind}/{level}") {
+        fun create(kind: String, level: Int = 0) = "lesson/$kind/$level"
+    }
 }

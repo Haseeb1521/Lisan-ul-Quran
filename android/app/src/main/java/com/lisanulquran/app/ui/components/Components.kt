@@ -1,7 +1,10 @@
 package com.lisanulquran.app.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,7 +62,9 @@ import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.data.local.AyahEntity
 import com.lisanulquran.app.data.local.WordEntity
 import com.lisanulquran.app.data.local.meaningOf
+import com.lisanulquran.app.ui.theme.CardBrush
 import com.lisanulquran.app.ui.theme.CardDark
+import com.lisanulquran.app.ui.theme.GoldBrush
 import com.lisanulquran.app.ui.theme.CardLight
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
@@ -73,17 +78,17 @@ fun AppCard(
     highlight: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val base = modifier.fillMaxWidth()
-    val colors = CardDefaults.cardColors(containerColor = CardDark)
+    val base = modifier.fillMaxWidth().animateContentSize()
+    val colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     val shape = RoundedCornerShape(18.dp)
     val border = BorderStroke(if (highlight) 2.dp else 1.dp, if (highlight) Gold else MaterialTheme.colorScheme.outline)
     if (onClick != null) {
         Card(onClick = onClick, modifier = base, colors = colors, shape = shape, border = border) {
-            Column(Modifier.padding(16.dp), content = content)
+            Column(Modifier.background(CardBrush).padding(16.dp), content = content)
         }
     } else {
         Card(modifier = base, colors = colors, shape = shape, border = border) {
-            Column(Modifier.padding(16.dp), content = content)
+            Column(Modifier.background(CardBrush).padding(16.dp), content = content)
         }
     }
 }
@@ -91,7 +96,7 @@ fun AppCard(
 @Composable
 fun ScreenTitle(title: String, subtitle: String? = null) {
     Column(Modifier.padding(bottom = 12.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
+        Text(title, style = MaterialTheme.typography.headlineMedium.copy(brush = GoldBrush))
         if (subtitle != null) {
             Spacer(Modifier.height(2.dp))
             Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = Muted)
@@ -105,7 +110,8 @@ fun NumberBadge(text: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .defaultMinSize(minWidth = 38.dp, minHeight = 38.dp)
             .clip(RoundedCornerShape(19.dp))
-            .background(CardLight),
+            .background(CardLight)
+            .border(1.5.dp, GoldBrush, RoundedCornerShape(19.dp)),
         contentAlignment = Alignment.Center
     ) {
         Text(text, color = Emerald, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
@@ -269,7 +275,8 @@ fun AyahCard(
             if (TafsirSpeaker.message != null && TafsirSpeaker.messageKey?.startsWith("${ayah.surah}:${ayah.ayah}:") == true) {
                 Text(TafsirSpeaker.message ?: "", color = Gold, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             }
-            if (tafsirOpen && shown != null) {
+            AnimatedVisibility(visible = tafsirOpen && shown != null) {
+              Column {
                 if (lang == "ro") {
                     Text(
                         tr("Roman mein tafsir available nahi hai, isliye English dikha rahe hain. Upar se Urdu ya English mein sun sakte hain.", "A Roman tafsir isn't available, so the English one is shown. You can listen in Urdu or English above."),
@@ -279,12 +286,13 @@ fun AyahCard(
                     )
                 }
                 Text(
-                    shown,
+                    shown ?: "",
                     color = Muted,
                     fontSize = if (lang == "ur") 17.sp else 15.sp,
                     lineHeight = if (lang == "ur") 30.sp else 23.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
+              }
             }
         }
     }

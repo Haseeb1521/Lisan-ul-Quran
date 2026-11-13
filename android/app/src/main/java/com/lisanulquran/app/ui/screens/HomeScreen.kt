@@ -1,5 +1,15 @@
 package com.lisanulquran.app.ui.screens
 
+import com.lisanulquran.app.ui.theme.HeroBrush
+import com.lisanulquran.app.ui.theme.GoldBrush
+import com.lisanulquran.app.data.GameStore
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import com.lisanulquran.app.ui.components.UiLanguageChips
 import com.lisanulquran.app.data.tr
 import androidx.compose.foundation.background
@@ -39,6 +49,7 @@ import com.lisanulquran.app.ui.components.AppCard
 import com.lisanulquran.app.ui.components.NumberBadge
 import com.lisanulquran.app.ui.components.ScreenTitle
 import com.lisanulquran.app.ui.navigation.Screen
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.Gold
@@ -63,13 +74,11 @@ fun HomeScreen(navController: NavController) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack),
+            .background(BgBrush),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item {
-            ScreenTitle("لسان القرآن", tr("Quran ki zuban samajhne ka safar", "A journey to understand the language of the Quran"))
-        }
+        item { HeroCard(navController) }
         item { UiLanguageChips() }
         item {
             AppCard(onClick = { navController.navigate(Screen.Grammar.route) }) {
@@ -106,4 +115,55 @@ fun HomeScreen(navController: NavController) {
         }
         item { Spacer(Modifier.height(8.dp)) }
     }
+}
+
+@Composable
+private fun HeroCard(navController: NavController) {
+    val streak = GameStore.streakNow()
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp))
+            .background(HeroBrush)
+            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(26.dp))
+            .padding(22.dp)
+    ) {
+        Text(
+            "لسان القرآن",
+            fontSize = 40.sp,
+            lineHeight = 56.sp,
+            style = MaterialTheme.typography.headlineMedium.copy(brush = GoldBrush, fontSize = 40.sp)
+        )
+        Text(
+            tr("Quran ki zuban samajhne ka safar", "A journey to understand the language of the Quran"),
+            color = Color(0xFFCFE6DA),
+            fontSize = 14.sp
+        )
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            HeroPill("🔥 $streak ${tr("din", "days")}")
+            HeroPill("⚡ ${GameStore.xp} XP")
+        }
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { navController.navigate(Screen.Revision.route) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = DeepBlack)
+        ) {
+            Text(tr("Seekhna shuru karo", "Start learning"), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun HeroPill(text: String) {
+    Text(
+        text,
+        color = Color.White,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color(0x26FFFFFF))
+            .padding(horizontal = 14.dp, vertical = 6.dp)
+    )
 }

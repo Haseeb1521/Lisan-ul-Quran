@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.ErrorRed
@@ -28,7 +29,7 @@ fun LoadingScreen(progress: Float, error: String?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(BgBrush)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

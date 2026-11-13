@@ -46,6 +46,7 @@ import com.lisanulquran.app.data.local.QuranDatabase
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
 import com.lisanulquran.app.ui.components.LanguageChips
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Gold
 import com.lisanulquran.app.ui.theme.Muted
@@ -91,7 +92,7 @@ fun SurahScreen(navController: NavController, surahId: Int) {
         state = listState,
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack),
+            .background(BgBrush),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

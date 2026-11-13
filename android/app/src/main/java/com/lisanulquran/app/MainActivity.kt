@@ -15,7 +15,7 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -30,7 +30,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -47,6 +49,7 @@ import com.lisanulquran.app.ui.navigation.Screen
 import com.lisanulquran.app.ui.screens.DailyAyahScreen
 import com.lisanulquran.app.ui.screens.GrammarScreen
 import com.lisanulquran.app.ui.screens.HomeScreen
+import com.lisanulquran.app.ui.screens.LessonScreen
 import com.lisanulquran.app.ui.screens.LoadingScreen
 import com.lisanulquran.app.ui.screens.QuizScreen
 import com.lisanulquran.app.ui.screens.RevisionScreen
@@ -67,7 +70,7 @@ private val tabs = listOf(
     Tab(Screen.Vocabulary.route, "Vocab", Icons.Default.MenuBook),
     Tab(Screen.DailyAyah.route, "Ayah", Icons.Default.AutoStories),
     Tab(Screen.Quiz.route, "Quiz", Icons.Default.Quiz),
-    Tab(Screen.Revision.route, "Revision", Icons.Default.Replay)
+    Tab(Screen.Revision.route, "Revision", Icons.Default.Bolt)
 )
 
 class MainActivity : ComponentActivity() {
@@ -114,6 +117,7 @@ private fun MainScaffold() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var showPlayer by remember { mutableStateOf(false) }
+    val inLesson = currentRoute?.startsWith("lesson") == true
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -127,9 +131,9 @@ private fun MainScaffold() {
         modifier = Modifier.fillMaxSize(),
         containerColor = DeepBlack,
         bottomBar = {
-            Column {
+            if (!inLesson) Column {
             MiniPlayer { showPlayer = true }
-            NavigationBar(containerColor = EmeraldDark) {
+            NavigationBar(containerColor = Color(0xFF0D241B), tonalElevation = 0.dp) {
                 tabs.forEach { tab ->
                     NavigationBarItem(
                         selected = currentRoute == tab.route,
@@ -168,6 +172,19 @@ private fun MainScaffold() {
             composable(Screen.DailyAyah.route) { DailyAyahScreen(navController) }
             composable(Screen.Quiz.route) { QuizScreen(navController) }
             composable(Screen.Revision.route) { RevisionScreen(navController) }
+            composable(
+                Screen.Lesson.route,
+                arguments = listOf(
+                    navArgument("kind") { type = NavType.StringType },
+                    navArgument("level") { type = NavType.IntType }
+                )
+            ) { entry ->
+                LessonScreen(
+                    navController,
+                    entry.arguments?.getString("kind") ?: "level",
+                    entry.arguments?.getInt("level") ?: 1
+                )
+            }
         }
     }
 }

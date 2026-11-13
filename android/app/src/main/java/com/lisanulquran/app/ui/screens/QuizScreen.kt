@@ -36,6 +36,7 @@ import com.lisanulquran.app.data.local.meaningOf
 import com.lisanulquran.app.ui.components.AppCard
 import com.lisanulquran.app.ui.components.LanguageChips
 import com.lisanulquran.app.ui.components.ScreenTitle
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.ErrorRed
@@ -80,7 +81,7 @@ fun QuizScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(BgBrush)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {

@@ -26,6 +26,7 @@ import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AyahCard
 import com.lisanulquran.app.ui.components.LanguageChips
 import com.lisanulquran.app.ui.components.ScreenTitle
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 
 private class DailyData(
@@ -74,7 +75,7 @@ fun DailyAyahScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(BgBrush)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {

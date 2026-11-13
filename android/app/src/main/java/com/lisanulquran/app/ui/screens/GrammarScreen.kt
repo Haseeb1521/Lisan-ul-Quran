@@ -25,6 +25,7 @@ import androidx.navigation.NavController
 import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.components.AppCard
 import com.lisanulquran.app.ui.components.ScreenTitle
+import com.lisanulquran.app.ui.theme.BgBrush
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.Emerald
 import com.lisanulquran.app.ui.theme.Gold
@@ -118,7 +119,7 @@ fun GrammarScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(BgBrush)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {

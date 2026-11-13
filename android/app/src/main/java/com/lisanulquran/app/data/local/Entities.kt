@@ -126,6 +126,16 @@ interface QuranDao {
     )
     suspend fun vocabByArabic(list: List<String>): List<VocabRow>
 
+    @Query(
+        """SELECT arabic, MAX(translit) AS translit, en, MAX(ur) AS ur, MAX(ro) AS ro, COUNT(*) AS freq
+           FROM words
+           WHERE en != ''
+           GROUP BY arabic, en
+           ORDER BY freq DESC
+           LIMIT :n"""
+    )
+    suspend fun topVocab(n: Int): List<VocabRow>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChapters(list: List<ChapterEntity>)
 
