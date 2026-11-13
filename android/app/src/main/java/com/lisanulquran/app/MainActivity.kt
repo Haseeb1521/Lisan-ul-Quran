@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -59,6 +62,8 @@ import com.lisanulquran.app.ui.screens.LoadingScreen
 import com.lisanulquran.app.ui.screens.QuizScreen
 import com.lisanulquran.app.ui.screens.RevisionScreen
 import com.lisanulquran.app.ui.screens.SurahScreen
+import com.lisanulquran.app.ui.screens.SurahListScreen
+import com.lisanulquran.app.data.tr
 import com.lisanulquran.app.ui.screens.VocabularyScreen
 import com.lisanulquran.app.ui.theme.DeepBlack
 import com.lisanulquran.app.ui.theme.EmeraldDark
@@ -71,9 +76,11 @@ import kotlinx.coroutines.delay
 private class Tab(val route: String, val label: String, val icon: ImageVector)
 
 private val tabs = listOf(
-    Tab(Screen.Home.route, "Quran", Icons.Default.Home),
+    Tab(Screen.Home.route, "Home", Icons.Default.Home),
     Tab(Screen.Vocabulary.route, "Vocab", Icons.Default.MenuBook),
-    Tab(Screen.DailyAyah.route, "Ayah", Icons.Default.AutoStories),
+    Tab(Screen.Grammar.route, "Grammar", Icons.Default.School),
+    Tab(Screen.Quran.route, "Ayah", Icons.Default.AutoStories),
+    Tab(Screen.Tafsir.route, "Tafsir", Icons.Default.Translate),
     Tab(Screen.Quiz.route, "Quiz", Icons.Default.Quiz),
     Tab(Screen.Revision.route, "Revision", Icons.Default.Bolt)
 )
@@ -149,7 +156,9 @@ private fun MainScaffold() {
             NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
                 tabs.forEach { tab ->
                     NavigationBarItem(
-                        selected = currentRoute == tab.route,
+                        selected = currentRoute == tab.route ||
+                            (tab.route == Screen.Quran.route && currentRoute == Screen.Surah.route) ||
+                            (tab.route == Screen.Tafsir.route && currentRoute == Screen.TafsirSurah.route),
                         onClick = {
                             navController.navigate(tab.route) {
                                 popUpTo(Screen.Home.route) { saveState = true }
@@ -158,7 +167,7 @@ private fun MainScaffold() {
                             }
                         },
                         icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
+                        label = { Text(tab.label, fontSize = 10.sp, maxLines = 1) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Emerald,
                             selectedTextColor = Gold,
@@ -180,6 +189,26 @@ private fun MainScaffold() {
                 arguments = listOf(navArgument("id") { type = NavType.IntType })
             ) { entry ->
                 SurahScreen(navController, entry.arguments?.getInt("id") ?: 1)
+            }
+            composable(Screen.Quran.route) {
+                SurahListScreen(
+                    navController,
+                    tr("Quran Majeed", "The Holy Quran"),
+                    tr("Sirf tilawat aur reading, ayah par tap karke sunein", "Recitation and reading only, tap an ayah to listen")
+                ) { Screen.Surah.create(it) }
+            }
+            composable(Screen.Tafsir.route) {
+                SurahListScreen(
+                    navController,
+                    "Tafsir",
+                    tr("Lafz ba lafz matlab aur tafsir", "Word-by-word meaning and tafsir")
+                ) { Screen.TafsirSurah.create(it) }
+            }
+            composable(
+                Screen.TafsirSurah.route,
+                arguments = listOf(navArgument("id") { type = NavType.IntType })
+            ) { entry ->
+                SurahScreen(navController, entry.arguments?.getInt("id") ?: 1, tafsirMode = true)
             }
             composable(Screen.Vocabulary.route) { VocabularyScreen(navController) }
             composable(Screen.Grammar.route) { GrammarScreen(navController) }

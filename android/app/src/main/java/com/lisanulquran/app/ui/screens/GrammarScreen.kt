@@ -1,6 +1,16 @@
 package com.lisanulquran.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -123,12 +133,7 @@ fun GrammarScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Gold)
-            }
-            ScreenTitle("Arabic Grammar", tr("Quran samajhne ki buniyaad", "The foundation for understanding the Quran"))
-        }
+        ScreenTitle("Arabic Grammar", tr("Quran samajhne ki buniyaad, har sabaq ke baad practice", "The foundation for understanding the Quran, with practice after each lesson"))
         lessons.forEach { lesson ->
             AppCard(modifier = Modifier.padding(vertical = 5.dp)) {
                 Text(tr(lesson.titleHi, lesson.titleEn), style = MaterialTheme.typography.titleMedium, color = Gold)
@@ -138,6 +143,62 @@ fun GrammarScreen(navController: NavController) {
                 lesson.examples.forEach { ex ->
                     Text("• ${ex.ar} = ${tr(ex.hi, ex.en)}", color = Emerald, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
                 }
+                Spacer(Modifier.height(10.dp))
+                Practice(lesson)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Practice(lesson: Lesson) {
+    var open by rememberSaveable(lesson.titleEn) { mutableStateOf(false) }
+    val all = remember { lessons.flatMap { it.examples } }
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color(0x2234D399))
+            .clickable { open = !open }
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            if (open) tr("Practice band karo", "Hide practice") else tr("Practice karo (${lesson.examples.size} sawal)", "Practice (${lesson.examples.size} questions)"),
+            color = Emerald,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 13.sp
+        )
+    }
+    if (open) {
+        lesson.examples.forEachIndexed { qi, ex ->
+            val correct = tr(ex.hi, ex.en)
+            val options = remember(lesson.titleEn, qi) {
+                val wrong = all.map { tr(it.hi, it.en) }.filter { it != correct }.distinct().shuffled().take(3)
+                (wrong + correct).shuffled()
+            }
+            var picked by rememberSaveable(lesson.titleEn, qi) { mutableStateOf<String?>(null) }
+            Spacer(Modifier.height(12.dp))
+            Text("${qi + 1}.  ${ex.ar}  ${tr("ka matlab?", "means?")}", color = Gold, fontSize = 18.sp)
+            options.forEach { opt ->
+                val chosen = picked
+                val bg = when {
+                    chosen == null -> Color(0xFF12241C)
+                    opt == correct -> Color(0xFF14573F)
+                    opt == chosen -> Color(0xFF5A1F22)
+                    else -> Color(0xFF12241C)
+                }
+                Text(
+                    opt,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 6.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(bg)
+                        .clickable { if (picked == null) picked = opt }
+                        .padding(horizontal = 14.dp, vertical = 11.dp)
+                )
             }
         }
     }

@@ -53,7 +53,7 @@ import com.lisanulquran.app.ui.theme.Gold
 import com.lisanulquran.app.ui.theme.Muted
 
 @Composable
-fun SurahScreen(navController: NavController, surahId: Int) {
+fun SurahScreen(navController: NavController, surahId: Int, tafsirMode: Boolean = false) {
     val context = LocalContext.current
     val dao = remember { QuranDatabase.getDatabase(context).quranDao() }
     val lang = AppSettings.meaningLang
@@ -132,7 +132,7 @@ fun SurahScreen(navController: NavController, surahId: Int) {
                 )
             }
         }
-        item {
+        if (tafsirMode) item {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -147,7 +147,18 @@ fun SurahScreen(navController: NavController, surahId: Int) {
         }
         items(ayahs, key = { it.ayah }) { ayah ->
             val isCurrent = thisSurahLoaded && player.ayahNumber == ayah.ayah
-            AyahCard(
+            if (!tafsirMode) {
+                ReadCard(
+                    ayah = ayah.ayah,
+                    arabic = ayah.arabic,
+                    isCurrent = isCurrent,
+                    isPlaying = player.isPlaying,
+                    onPlay = {
+                        if (isCurrent) player.togglePlayPause()
+                        else player.play(context, surahId, name, count, ayah.ayah)
+                    }
+                )
+            } else AyahCard(
                 ayah = ayah,
                 words = wordsByAyah[ayah.ayah].orEmpty(),
                 tafsirUr = tafsirUrByAyah[ayah.ayah],
@@ -161,6 +172,34 @@ fun SurahScreen(navController: NavController, surahId: Int) {
                     else player.play(context, surahId, name, count, ayah.ayah)
                 },
                 onWordClick = { w -> tts.speak(w.arabic) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadCard(ayah: Int, arabic: String, isCurrent: Boolean, isPlaying: Boolean, onPlay: () -> Unit) {
+    com.lisanulquran.app.ui.components.AppCard(highlight = isCurrent) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            com.lisanulquran.app.ui.components.NumberBadge(ayah.toString())
+            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+            IconButton(onClick = onPlay) {
+                Icon(
+                    if (isCurrent && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = "Play",
+                    tint = com.lisanulquran.app.ui.theme.Emerald
+                )
+            }
+        }
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl
+        ) {
+            Text(
+                arabic,
+                fontSize = 30.sp,
+                lineHeight = 56.sp,
+                color = Gold,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
             )
         }
     }

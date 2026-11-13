@@ -136,6 +136,9 @@ interface QuranDao {
     )
     suspend fun topVocab(n: Int): List<VocabRow>
 
+    @Query("SELECT * FROM words WHERE arabic = :arabic AND en != '' ORDER BY surah, ayah LIMIT 1 OFFSET :offset")
+    suspend fun wordSample(arabic: String, offset: Int): WordEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChapters(list: List<ChapterEntity>)
 
